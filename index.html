@@ -24,7 +24,7 @@
 
 <button onclick="uploadFile()" class="bg-blue-500 text-white px-4 py-2 rounded">Upload</button>
 
-<!-- Tabel real-time -->
+<!-- Tabel upload -->
 <h2 class="text-xl font-bold mt-6 mb-2">Data Upload</h2>
 <table class="table-auto border-collapse border border-gray-400 w-full" id="uploadTable">
   <thead>
@@ -34,13 +34,15 @@
       <th class="border px-2 py-1">Media</th>
     </tr>
   </thead>
-  <tbody id="uploadBody"></tbody>
+  <tbody id="uploadBody">
+    <!-- Tabel kosong di awal -->
+  </tbody>
 </table>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbySNPcZH5WHUrAcSw0fBvnSXj2wpEuPMJrf4wdsPr8flousGEKQxJH0L5Of-zvb5im0YQ/exec"; // Ganti dengan URL Apps Script
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWczwcKBezvFvDgeMhOYOeMGOtY4ZzmQ4khI96Yxpk5k6Iz5y0G4UFt73c5wwgQFTooQ/exec"; // Ganti URL Apps Script
 
-// Ambil daftar guru (nama + NIP)
+// Ambil daftar guru dari sheet "data" (Nama + NIP)
 fetch(SCRIPT_URL)
 .then(res => res.json())
 .then(data => {
@@ -77,7 +79,7 @@ function uploadFile() {
     .then(res => res.json())
     .then(resp => {
       if (resp.status === "success") {
-        loadUploadData(); // update tabel setelah upload
+        loadUploadData(); // Tampilkan data baru setelah upload
       } else {
         alert(resp.message);
       }
@@ -87,11 +89,12 @@ function uploadFile() {
   reader.readAsDataURL(file);
 }
 
-// Ambil data upload real-time
+// Fungsi ambil data upload dari sheet "data_upload"
 function loadUploadData() {
   fetch(SCRIPT_URL + "?action=get_upload")
     .then(res => res.json())
     .then(data => {
+      if(!data || data.length === 0) return; // Jika kosong, jangan tampilkan
       const tbody = document.getElementById("uploadBody");
       tbody.innerHTML = "";
       data.forEach(row => {
@@ -106,9 +109,7 @@ function loadUploadData() {
     });
 }
 
-// Auto refresh setiap 5 detik
-setInterval(loadUploadData, 5000);
-loadUploadData();
+// Tidak dipanggil saat awal, hanya setelah upload berhasil
 </script>
 
 </body>
