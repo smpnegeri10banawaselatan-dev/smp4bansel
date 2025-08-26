@@ -1,37 +1,40 @@
-function doGet() {
-  return HtmlService.createHtmlOutputFromFile('index');
-}
-
-// Spreadsheet & Folder tujuan upload
-const SPREADSHEET_ID = "1SVtLNZouu5qEQ4g8VXmgsDZL1uZqxgXRjQYLYznkaGY"; // ganti dengan ID Spreadsheet Anda
+const SPREADSHEET_ID = "1SVtLNZouu5qEQ4g8VXmgsDZL1uZqxgXRjQYLYznkaGY";
 const SHEET_NAME = "data";
-const FOLDER_ID = "1zHJ0BXe2AUGogJk7qAg9NHJwJHdMw1-F"; // hanya ID folder Drive
+const FOLDER_ID = "1NhyI9OpNAFJXONbSPZMPEXs6VPIMttZz"; // Folder tujuan upload
 
-function getData() {
+function doGet() {
   const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
-  return sheet.getDataRange().getValues();
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const rows = [];
+  for (let i = 1; i < data.length; i++) {
+    const obj = {};
+    headers.forEach((h, j) => obj[h] = data[i][j]);
+    rows.push(obj);
+  }
+  return ContentService.createTextOutput(JSON.stringify(rows))
+           .setMimeType(ContentService.MimeType.JSON);
 }
 
-function uploadFile(data, namaGuru, nip) {
+function doPost(e) {
   try {
+    const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
     const folder = DriveApp.getFolderById(FOLDER_ID);
-    const contentType = data.substring(5, data.indexOf(';'));
-    const bytes = Utilities.base64Decode(data.split(",")[1]);
-    const blob = Utilities.newBlob(bytes, contentType, "MediaPembelajaran_" + new Date().getTime());
+    const data = JSON.parse(e.postData.contents);
 
-    // Upload file ke Drive
+    // Data.file → base64 file dari HTML
+    const contentType = data.file.substring(data.file.indexOf(":")+1, data.file.indexOf(";"));
+    const bytes = Utilities.base64Decode(data.file.split(",")[1]);
+    const blob = Utilities.newBlob(bytes, contentType, data.nama_guru + "_" + new Date().getTime());
     const file = folder.createFile(blob);
 
     // Simpan ke Spreadsheet
-    const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
-    const lastRow = sheet.getLastRow() + 1;
-    sheet.getRange(lastRow, 1).setValue(lastRow - 1); // NO
-    sheet.getRange(lastRow, 2).setValue(namaGuru);   // Nama Guru
-    sheet.getRange(lastRow, 3).setValue(nip);        // NIP
-    sheet.getRange(lastRow, 4).setValue(file.getUrl()); // Link File
+    sheet.appendRow([new Date(), data.nama_guru, data.nip, file.getUrl()]);
 
-    return "Upload berhasil: " + file.getUrl();
-  } catch (e) {
-    return "Error: " + e.message;
+    return ContentService.createTextOutput(JSON.stringify({status:"success", url:file.getUrl()}))
+             .setMimeType(ContentService.MimeType.JSON);
+  } catch(err){
+    return ContentService.createTextOutput(JSON.stringify({status:"error", message: err.message}))
+             .setMimeType(ContentService.MimeType.JSON);
   }
 }
