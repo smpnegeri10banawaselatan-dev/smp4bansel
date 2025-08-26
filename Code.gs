@@ -3,7 +3,7 @@ function doGet() {
 }
 
 // Spreadsheet & Folder tujuan upload
-const SPREADSHEET_ID = "PASTE_SPREADSHEET_ID"; // ganti dengan ID Spreadsheet Anda
+const SPREADSHEET_ID = "1SVtLNZouu5qEQ4g8VXmgsDZL1uZqxgXRjQYLYznkaGY"; // ganti dengan ID Spreadsheet Anda
 const SHEET_NAME = "data";
 const FOLDER_ID = "1zHJ0BXe2AUGogJk7qAg9NHJwJHdMw1-F"; // hanya ID folder Drive
 
