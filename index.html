@@ -35,12 +35,13 @@
 </div>
 
 <script>
-const scriptURL = "https://script.google.com/macros/s/AKfycbyJolvSa1EK37DNiUFhumpgIoHFJ6ttKWBgxBGI_18biXueZJzD1BMU4zDiacF_9nutUQ/exec";
+const scriptURL = "https://script.google.com/macros/s/AKfycbyMJf0OZ6lpmJwnVeQmVjS-MJlQz_a73q39HUL6XzUjgd0rUUyFLymveOJ5lXq_aORnMg/exec";
 
 const form = document.getElementById("guruForm");
 const tableBody = document.getElementById("dataTable");
 const statusEl = document.getElementById("status");
 
+// Submit form
 form.addEventListener("submit", async e=>{
   e.preventDefault();
   const fileInput = e.target.file.files[0];
@@ -50,7 +51,7 @@ form.addEventListener("submit", async e=>{
     const data = {
       nama_guru: e.target.nama_guru.value,
       nip: e.target.nip.value,
-      file: reader.result // base64
+      file: reader.result
     };
 
     try {
@@ -65,7 +66,7 @@ form.addEventListener("submit", async e=>{
         form.reset();
         loadData();
       } else {
-        statusEl.innerText = "❌ Gagal upload!";
+        statusEl.innerText = "❌ Gagal upload: "+result.message;
       }
     } catch(err){
       statusEl.innerText = "⚠️ Error koneksi!";
@@ -75,7 +76,7 @@ form.addEventListener("submit", async e=>{
   reader.readAsDataURL(fileInput);
 });
 
-// Load data dari Google Sheets
+// Load data dari Spreadsheet
 async function loadData(){
   try {
     const res = await fetch(scriptURL);
