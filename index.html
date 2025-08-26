@@ -2,78 +2,81 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistem Informasi Perangkat Pembelajaran</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 p-6 font-sans">
+<body class="bg-gray-100 font-sans">
 
-  <h1 class="text-2xl font-bold mb-4">📚 Sistem Informasi Perangkat Pembelajaran</h1>
+  <div class="container mx-auto p-6">
+    <h1 class="text-2xl font-bold text-center mb-6">📚 Sistem Informasi Perangkat Pembelajaran</h1>
 
-  <!-- Form Upload -->
-  <div class="bg-white p-4 rounded shadow mb-6">
-    <h2 class="text-xl font-semibold mb-2">Upload Media Pembelajaran</h2>
-    <form id="uploadForm">
-      <input type="text" id="namaGuru" placeholder="Nama Guru" class="border p-2 rounded w-full mb-2" required>
-      <input type="text" id="nip" placeholder="NIP" class="border p-2 rounded w-full mb-2" required>
-      <input type="file" id="fileInput" class="mb-2 w-full" required>
-      <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Upload</button>
-    </form>
-    <p id="status" class="mt-2 text-green-600"></p>
-  </div>
+    <!-- Form Input Data -->
+    <div class="bg-white shadow-md rounded-lg p-4 mb-6">
+      <h2 class="text-lg font-semibold mb-4">Tambah Data Guru</h2>
+      <form id="dataForm" class="space-y-4">
+        <div>
+          <label class="block mb-1">Nama Guru</label>
+          <input type="text" id="nama" class="w-full border rounded p-2" required>
+        </div>
+        <div>
+          <label class="block mb-1">NIP</label>
+          <input type="text" id="nip" class="w-full border rounded p-2" required>
+        </div>
+        <div>
+          <label class="block mb-1">Upload Media Pembelajaran</label>
+          <input type="file" id="file" class="w-full border rounded p-2" required>
+        </div>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Simpan</button>
+      </form>
+    </div>
 
-  <!-- Tabel Data -->
-  <div class="bg-white p-4 rounded shadow">
-    <h2 class="text-xl font-semibold mb-2">Daftar Media Pembelajaran</h2>
-    <table class="table-auto border-collapse border border-gray-300 w-full">
-      <thead>
-        <tr class="bg-gray-200">
-          <th class="border p-2">NO</th>
-          <th class="border p-2">NAMA GURU</th>
-          <th class="border p-2">NIP</th>
-          <th class="border p-2">MEDIA PEMBELAJARAN</th>
-        </tr>
-      </thead>
-      <tbody id="dataTable"></tbody>
-    </table>
+    <!-- Tabel Data -->
+    <div class="bg-white shadow-md rounded-lg p-4">
+      <h2 class="text-lg font-semibold mb-4">Daftar Guru & Media Pembelajaran</h2>
+      <table class="w-full border-collapse border border-gray-300">
+        <thead>
+          <tr class="bg-gray-200">
+            <th class="border border-gray-300 px-3 py-2">No</th>
+            <th class="border border-gray-300 px-3 py-2">Nama Guru</th>
+            <th class="border border-gray-300 px-3 py-2">NIP</th>
+            <th class="border border-gray-300 px-3 py-2">Media Pembelajaran</th>
+          </tr>
+        </thead>
+        <tbody id="dataTable"></tbody>
+      </table>
+    </div>
   </div>
 
   <script>
-    // Ambil data dari server
-    function loadData() {
-      google.script.run.withSuccessHandler(function(data) {
-        let html = "";
-        for (let i = 1; i < data.length; i++) {
-          html += `
-            <tr>
-              <td class="border p-2">${data[i][0]}</td>
-              <td class="border p-2">${data[i][1]}</td>
-              <td class="border p-2">${data[i][2]}</td>
-              <td class="border p-2"><a href="${data[i][3]}" target="_blank" class="text-blue-600">Lihat File</a></td>
-            </tr>
-          `;
-        }
-        document.getElementById("dataTable").innerHTML = html;
-      }).getData();
-    }
+    let counter = 1;
+    const form = document.getElementById("dataForm");
+    const table = document.getElementById("dataTable");
 
-    // Upload file
-    document.getElementById("uploadForm").addEventListener("submit", function(e) {
+    form.addEventListener("submit", function(e) {
       e.preventDefault();
-      const namaGuru = document.getElementById("namaGuru").value;
-      const nip = document.getElementById("nip").value;
-      const file = document.getElementById("fileInput").files[0];
-      const reader = new FileReader();
 
-      reader.onloadend = function() {
-        google.script.run.withSuccessHandler(function(msg) {
-          document.getElementById("status").innerText = msg;
-          loadData();
-        }).uploadFile(reader.result, namaGuru, nip);
-      };
-      reader.readAsDataURL(file);
+      let nama = document.getElementById("nama").value;
+      let nip = document.getElementById("nip").value;
+      let file = document.getElementById("file").files[0];
+
+      if (nama && nip && file) {
+        let newRow = table.insertRow();
+
+        let cell1 = newRow.insertCell(0);
+        let cell2 = newRow.insertCell(1);
+        let cell3 = newRow.insertCell(2);
+        let cell4 = newRow.insertCell(3);
+
+        cell1.innerHTML = counter++;
+        cell2.innerHTML = nama;
+        cell3.innerHTML = nip;
+        cell4.innerHTML = `<a href="#" class="text-blue-600 underline">${file.name}</a>`;
+
+        form.reset();
+      }
     });
-
-    loadData();
   </script>
+
 </body>
 </html>
