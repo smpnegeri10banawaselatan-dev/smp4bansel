@@ -24,6 +24,9 @@
 
 <button onclick="uploadFile()" class="bg-blue-500 text-white px-4 py-2 rounded">Upload</button>
 
+<!-- Notifikasi -->
+<div id="notif" class="mt-4 text-green-600 font-semibold hidden"></div>
+
 <!-- Tabel upload -->
 <h2 class="text-xl font-bold mt-6 mb-2">Data Upload</h2>
 <table class="table-auto border-collapse border border-gray-400 w-full" id="uploadTable">
@@ -40,9 +43,11 @@
 </table>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWczwcKBezvFvDgeMhOYOeMGOtY4ZzmQ4khI96Yxpk5k6Iz5y0G4UFt73c5wwgQFTooQ/exec"; // Ganti URL Apps Script
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxSF_F6WKNWkrnxta1SNW5qMjsDCnJM3ZBcLEhV41hErNkqY2kTL1PE5E9X7MRs1Ad2ew/exec"; // Ganti URL Apps Script
 
-// Ambil daftar guru dari sheet "data" (Nama + NIP)
+const notifEl = document.getElementById("notif");
+
+// Ambil daftar guru dari sheet "data"
 fetch(SCRIPT_URL)
 .then(res => res.json())
 .then(data => {
@@ -53,6 +58,8 @@ fetch(SCRIPT_URL)
     option.textContent = guru.nama;
     select.appendChild(option);
   });
+  // Tampilkan data upload saat halaman dibuka
+  loadUploadData();
 });
 
 // Upload file
@@ -79,7 +86,10 @@ function uploadFile() {
     .then(res => res.json())
     .then(resp => {
       if (resp.status === "success") {
-        loadUploadData(); // Tampilkan data baru setelah upload
+        notifEl.textContent = "File berhasil dikirim!";
+        notifEl.classList.remove("hidden");
+        // Tampilkan data terbaru
+        loadUploadData();
       } else {
         alert(resp.message);
       }
@@ -94,9 +104,9 @@ function loadUploadData() {
   fetch(SCRIPT_URL + "?action=get_upload")
     .then(res => res.json())
     .then(data => {
-      if(!data || data.length === 0) return; // Jika kosong, jangan tampilkan
       const tbody = document.getElementById("uploadBody");
       tbody.innerHTML = "";
+      if(!data || data.length === 0) return; 
       data.forEach(row => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -109,7 +119,8 @@ function loadUploadData() {
     });
 }
 
-// Tidak dipanggil saat awal, hanya setelah upload berhasil
+// Auto-refresh setiap 10 detik agar tabel selalu update
+setInterval(loadUploadData, 10000);
 </script>
 
 </body>
