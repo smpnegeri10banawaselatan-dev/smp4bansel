@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -35,13 +36,12 @@
 </div>
 
 <script>
-const scriptURL = "https://script.google.com/macros/s/AKfycbwWxlmIc2QZApZVz_oOH8RLE_Qlw8R0cEbY2AYO0bKs_CtLGqPya4Sfcz3Fa3XHixzBMg/exec";
+const scriptURL = "https://script.google.com/macros/s/AKfycbxPaJIw8mLzxPfEy1d1sGOS6wsWvVx60LJRbthTsV80UyLxLKHiKHKhzAi0wQ2VCc9iug/exec";
 
 const form = document.getElementById("guruForm");
 const tableBody = document.getElementById("dataTable");
 const statusEl = document.getElementById("status");
 
-// Submit form
 form.addEventListener("submit", async e=>{
   e.preventDefault();
   const fileInput = e.target.file.files[0];
@@ -76,7 +76,6 @@ form.addEventListener("submit", async e=>{
   reader.readAsDataURL(fileInput);
 });
 
-// Load data dari Spreadsheet
 async function loadData(){
   try {
     const res = await fetch(scriptURL);
