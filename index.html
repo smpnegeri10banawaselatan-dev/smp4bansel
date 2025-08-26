@@ -10,11 +10,13 @@
 
 <h1 class="text-2xl font-bold mb-4">Upload Dokumen Pembelajaran</h1>
 
+<!-- Pilih guru -->
 <div class="mb-4">
   <label class="block mb-2 font-semibold">Pilih Guru:</label>
   <select id="guruSelect" class="border p-2 w-full"></select>
 </div>
 
+<!-- Pilih file -->
 <div class="mb-4">
   <label class="block mb-2 font-semibold">Pilih File:</label>
   <input type="file" id="fileInput" class="border p-2 w-full" />
@@ -22,25 +24,36 @@
 
 <button onclick="uploadFile()" class="bg-blue-500 text-white px-4 py-2 rounded">Upload</button>
 
-<h2 class="text-xl font-bold mt-6 mb-2">File yang sudah diupload:</h2>
-<ul id="uploadedList" class="list-disc pl-5"></ul>
+<!-- Tabel real-time -->
+<h2 class="text-xl font-bold mt-6 mb-2">Data Upload</h2>
+<table class="table-auto border-collapse border border-gray-400 w-full" id="uploadTable">
+  <thead>
+    <tr class="bg-gray-200">
+      <th class="border px-2 py-1">Nama Guru</th>
+      <th class="border px-2 py-1">NIP</th>
+      <th class="border px-2 py-1">Media</th>
+    </tr>
+  </thead>
+  <tbody id="uploadBody"></tbody>
+</table>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbznUPlRZd4eAyBdFwZ2Uoyu07twTv2uEjxymI2r3EPbUW6NTl-9Re8RZeMHRy-cpuPvZA/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec"; // Ganti dengan URL Apps Script
 
-// Ambil daftar guru
+// Ambil daftar guru (nama + NIP)
 fetch(SCRIPT_URL)
 .then(res => res.json())
 .then(data => {
   const select = document.getElementById("guruSelect");
   data.forEach(guru => {
     const option = document.createElement("option");
-    option.value = guru;
-    option.textContent = guru;
+    option.value = guru.nama;
+    option.textContent = guru.nama;
     select.appendChild(option);
   });
 });
 
+// Upload file
 function uploadFile() {
   const guru = document.getElementById("guruSelect").value;
   const fileInput = document.getElementById("fileInput");
@@ -64,9 +77,7 @@ function uploadFile() {
     .then(res => res.json())
     .then(resp => {
       if (resp.status === "success") {
-        const li = document.createElement("li");
-        li.innerHTML = `<a href="${resp.url}" target="_blank">${resp.name}</a>`;
-        document.getElementById("uploadedList").appendChild(li);
+        loadUploadData(); // update tabel setelah upload
       } else {
         alert(resp.message);
       }
@@ -75,6 +86,29 @@ function uploadFile() {
   };
   reader.readAsDataURL(file);
 }
+
+// Ambil data upload real-time
+function loadUploadData() {
+  fetch(SCRIPT_URL + "?action=get_upload")
+    .then(res => res.json())
+    .then(data => {
+      const tbody = document.getElementById("uploadBody");
+      tbody.innerHTML = "";
+      data.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="border px-2 py-1">${row["Nama Guru"]}</td>
+          <td class="border px-2 py-1">${row["NIP"]}</td>
+          <td class="border px-2 py-1"><a href="${row["Media"]}" target="_blank">Lihat</a></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    });
+}
+
+// Auto refresh setiap 5 detik
+setInterval(loadUploadData, 5000);
+loadUploadData();
 </script>
 
 </body>
