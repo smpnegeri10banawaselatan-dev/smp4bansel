@@ -1,7 +1,8 @@
-const SPREADSHEET_ID = "1SVtLNZouu5qEQ4g8VXmgsDZL1uZqxgXRjQYLYznkaGY";
+=const SPREADSHEET_ID = "1SVtLNZouu5qEQ4g8VXmgsDZL1uZqxgXRjQYLYznkaGY";
 const SHEET_NAME = "data";
-const FOLDER_ID = "1NhyI9OpNAFJXONbSPZMPEXs6VPIMttZz"; // Folder tujuan upload
+const FOLDER_ID = "1NhyI9OpNAFJXONbSPZMPEXs6VPIMttZz";
 
+// GET → Ambil semua data
 function doGet() {
   const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
   const data = sheet.getDataRange().getValues();
@@ -16,13 +17,16 @@ function doGet() {
            .setMimeType(ContentService.MimeType.JSON);
 }
 
+// POST → Simpan data + upload file ke Drive
 function doPost(e) {
   try {
+    Logger.log("Data diterima: " + JSON.stringify(e));
+
     const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
     const folder = DriveApp.getFolderById(FOLDER_ID);
     const data = JSON.parse(e.postData.contents);
 
-    // Data.file → base64 file dari HTML
+    // Convert base64 file menjadi Blob
     const contentType = data.file.substring(data.file.indexOf(":")+1, data.file.indexOf(";"));
     const bytes = Utilities.base64Decode(data.file.split(",")[1]);
     const blob = Utilities.newBlob(bytes, contentType, data.nama_guru + "_" + new Date().getTime());
@@ -33,8 +37,10 @@ function doPost(e) {
 
     return ContentService.createTextOutput(JSON.stringify({status:"success", url:file.getUrl()}))
              .setMimeType(ContentService.MimeType.JSON);
+
   } catch(err){
-    return ContentService.createTextOutput(JSON.stringify({status:"error", message: err.message}))
+    Logger.log("Terjadi kesalahan: " + err.message);
+    return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.message}))
              .setMimeType(ContentService.MimeType.JSON);
   }
 }
