@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistem Informasi Perangkat Pembelajaran</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistem Informasi Perangkat Pembelajaran</title>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 p-6">
 
@@ -32,7 +32,7 @@
           <th class="border px-3 py-2">No</th>
           <th class="border px-3 py-2">Nama Guru</th>
           <th class="border px-3 py-2">NIP</th>
-          <th class="border px-3 py-2">Link Media Pembelajaran</th>
+          <th class="border px-3 py-2">Link Media</th>
         </tr>
       </thead>
       <tbody id="dataTable"></tbody>
@@ -41,63 +41,61 @@
 </div>
 
 <script>
-  const scriptURL = "PASTE_URL_WEB_APP_KAMU"; // Ganti dengan URL Web App Google Apps Script
+const scriptURL = "https://script.google.com/macros/s/AKfycbyj2s1x10p7yzJGl98fOVXBsmZkLBeRo56O-4AMDkD1SDrTtCVzmhu8863A7_9yEeS_fw/exec"; // Ganti URL Web App Apps Script
 
-  const form = document.getElementById("guruForm");
-  const statusEl = document.getElementById("status");
-  const tableBody = document.getElementById("dataTable");
+const form = document.getElementById("guruForm");
+const statusEl = document.getElementById("status");
+const tableBody = document.getElementById("dataTable");
 
-  // Submit form
-  form.addEventListener("submit", async e => {
-    e.preventDefault();
-    const data = {
-      nama_guru: e.target.nama_guru.value,
-      nip: e.target.nip.value,
-      link_media: e.target.link_media.value
-    };
+// Submit form
+form.addEventListener("submit", async e => {
+  e.preventDefault();
+  const data = {
+    nama_guru: e.target.nama_guru.value,
+    nip: e.target.nip.value,
+    link_media: e.target.link_media.value
+  };
 
-    try {
-      const res = await fetch(scriptURL, {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: {"Content-Type": "application/json"}
-      });
-      const result = await res.json();
-      if(result.status === "success"){
-        statusEl.innerText = "✅ Data berhasil disimpan!";
-        form.reset();
-        loadData(); // Refresh tabel
-      } else {
-        statusEl.innerText = "❌ Gagal menyimpan data!";
-      }
-    } catch(err){
-      statusEl.innerText = "⚠️ Error koneksi!";
+  try {
+    const res = await fetch(scriptURL, {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: {"Content-Type":"application/json"}
+    });
+    const result = await res.json();
+    if(result.status==="success"){
+      statusEl.innerText = "✅ Data berhasil disimpan!";
+      form.reset();
+      loadData();
+    } else {
+      statusEl.innerText = "❌ Gagal menyimpan data!";
     }
-  });
-
-  // Load data dari Google Sheets
-  async function loadData() {
-    try {
-      const res = await fetch(scriptURL); // GET request
-      const data = await res.json();
-
-      tableBody.innerHTML = "";
-      data.forEach((row, i) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td class="border px-3 py-2">${i+1}</td>
-          <td class="border px-3 py-2">${row.nama_guru}</td>
-          <td class="border px-3 py-2">${row.nip}</td>
-          <td class="border px-3 py-2"><a href="${row.link_media}" target="_blank" class="text-blue-600 underline">Lihat Media</a></td>
-        `;
-        tableBody.appendChild(tr);
-      });
-    } catch(err){
-      console.log("Error load data:", err);
-    }
+  } catch(err){
+    statusEl.innerText = "⚠️ Error koneksi!";
   }
+});
 
-  loadData();
+// Load data dari spreadsheet
+async function loadData() {
+  try {
+    const res = await fetch(scriptURL);
+    const data = await res.json();
+    tableBody.innerHTML = "";
+    data.forEach((row,i)=>{
+      tableBody.innerHTML += `
+        <tr>
+          <td class="border px-3 py-2">${i+1}</td>
+          <td class="border px-3 py-2">${row["Nama Guru"]}</td>
+          <td class="border px-3 py-2">${row["NIP"]}</td>
+          <td class="border px-3 py-2"><a href="${row["Link Media Pembelajaran"]}" target="_blank" class="text-blue-600 underline">Lihat Media</a></td>
+        </tr>
+      `;
+    });
+  } catch(err){ console.log("Error load data:", err); }
+}
+
+loadData();
 </script>
+
 </body>
 </html>
