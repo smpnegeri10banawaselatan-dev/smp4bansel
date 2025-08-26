@@ -1,144 +1,81 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Upload Dokumen Guru</title>
-  <style>
-    body { font-family: sans-serif; margin: 24px; }
-    label { display:block; margin-top:12px; font-weight:600; }
-    select, input, button { padding:8px; margin-top:4px; width:100%; box-sizing: border-box; }
-    button { background:#2563eb; color:white; border:none; cursor:pointer; }
-    button:disabled { background:#9ca3af; cursor:not-allowed; }
-    .success { color:green; }
-    .error { color:red; }
-    table { width:100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
-    th { background: #f3f4f6; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upload Dokumen Pembelajaran</title>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <h2>Upload Dokumen Guru</h2>
+<body class="bg-gray-100 p-6">
 
-  <label for="guru">Pilih Guru</label>
-  <select id="guru">
-    <option value="">Memuat daftar...</option>
-  </select>
+<h1 class="text-2xl font-bold mb-4">Upload Dokumen Pembelajaran</h1>
 
-  <label for="nip">NIP</label>
-  <input type="text" id="nip" placeholder="Masukkan NIP jika tidak memilih dari daftar" />
+<div class="mb-4">
+  <label class="block mb-2 font-semibold">Pilih Guru:</label>
+  <select id="guruSelect" class="border p-2 w-full"></select>
+</div>
 
-  <label for="no">No</label>
-  <input type="text" id="no" placeholder="Masukkan No baris (opsional)" />
+<div class="mb-4">
+  <label class="block mb-2 font-semibold">Pilih File:</label>
+  <input type="file" id="fileInput" class="border p-2 w-full" />
+</div>
 
-  <label for="nama">Nama Guru</label>
-  <input type="text" id="nama" placeholder="Masukkan Nama Guru (opsional)" />
+<button onclick="uploadFile()" class="bg-blue-500 text-white px-4 py-2 rounded">Upload</button>
 
-  <label for="file">File</label>
-  <input type="file" id="file" />
+<h2 class="text-xl font-bold mt-6 mb-2">File yang sudah diupload:</h2>
+<ul id="uploadedList" class="list-disc pl-5"></ul>
 
-  <button id="btnUpload">Upload</button>
-  <p id="status"></p>
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec";
 
-  <h3>Data Saat Ini</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>No</th>
-        <th>Nama Guru</th>
-        <th>NIP</th>
-        <th>Media</th>
-      </tr>
-    </thead>
-    <tbody id="tabel"></tbody>
-  </table>
+// Ambil daftar guru
+fetch(SCRIPT_URL)
+.then(res => res.json())
+.then(data => {
+  const select = document.getElementById("guruSelect");
+  data.forEach(guru => {
+    const option = document.createElement("option");
+    option.value = guru;
+    option.textContent = guru;
+    select.appendChild(option);
+  });
+});
 
-  <script>
-    // Ganti dengan URL Web App hasil deploy Apps Script backend
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxU0rkr37f4YJm3jJcM3ygAi4qmmqAIWW0LTRwdV2Fc8z0wgI1KiaYkuGD9_4AeLfYQnQ/exec';
+function uploadFile() {
+  const guru = document.getElementById("guruSelect").value;
+  const fileInput = document.getElementById("fileInput");
+  const file = fileInput.files[0];
 
-    async function loadGuru() {
-      try {
-        const res = await fetch(WEB_APP_URL + '?action=list');
-        const data = await res.json();
-        if (!data.ok) throw new Error('Gagal memuat data guru');
+  if (!file || !guru) {
+    alert("Pilih guru dan file terlebih dahulu!");
+    return;
+  }
 
-        const guruSelect = document.getElementById('guru');
-        guruSelect.innerHTML = '<option value="">--Pilih--</option>';
-        data.data.forEach(g => {
-          const opt = document.createElement('option');
-          opt.value = JSON.stringify(g);
-          opt.textContent = `${g.no || ''} - ${g.nama || ''} - ${g.nip || ''}`;
-          guruSelect.appendChild(opt);
-        });
-        renderTable(data.data);
-      } catch (err) {
-        document.getElementById('status').textContent = err.message;
-        document.getElementById('status').className = 'error';
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64Data = e.target.result.split(",")[1];
+    const formData = new FormData();
+    formData.append("fileBlob", base64Data);
+    formData.append("fileName", file.name);
+    formData.append("fileType", file.type);
+    formData.append("guru", guru);
+
+    fetch(SCRIPT_URL, { method: "POST", body: formData })
+    .then(res => res.json())
+    .then(resp => {
+      if (resp.status === "success") {
+        const li = document.createElement("li");
+        li.innerHTML = `<a href="${resp.url}" target="_blank">${resp.name}</a>`;
+        document.getElementById("uploadedList").appendChild(li);
+      } else {
+        alert(resp.message);
       }
-    }
+    })
+    .catch(err => alert(err.message));
+  };
+  reader.readAsDataURL(file);
+}
+</script>
 
-    function renderTable(rows) {
-      const tbody = document.getElementById('tabel');
-      tbody.innerHTML = '';
-      rows.forEach(r => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${r.no || ''}</td>
-          <td>${r.nama || ''}</td>
-          <td>${r.nip || ''}</td>
-          <td>${r.media ? `<a href="${r.media}" target="_blank">Link</a>` : ''}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    document.getElementById('guru').addEventListener('change', e => {
-      if (!e.target.value) return;
-      const g = JSON.parse(e.target.value);
-      document.getElementById('nip').value = g.nip || '';
-      document.getElementById('no').value = g.no || '';
-      document.getElementById('nama').value = g.nama || '';
-    });
-
-    document.getElementById('btnUpload').addEventListener('click', async () => {
-      const status = document.getElementById('status');
-      status.textContent = '';
-      status.className = '';
-
-      const file = document.getElementById('file').files[0];
-      if (!file) {
-        status.textContent = 'Pilih file terlebih dahulu.';
-        status.className = 'error';
-        return;
-      }
-
-      const fd = new FormData();
-      fd.append('nip', document.getElementById('nip').value.trim());
-      fd.append('no', document.getElementById('no').value.trim());
-      fd.append('nama', document.getElementById('nama').value.trim());
-      fd.append('file', file, file.name);
-
-      try {
-        document.getElementById('btnUpload').disabled = true;
-        status.textContent = 'Mengunggah...';
-        const res = await fetch(WEB_APP_URL, { method: 'POST', body: fd });
-        const json = await res.json();
-        if (!json.ok) throw new Error(json.error || 'Upload gagal');
-
-        status.textContent = 'Berhasil diunggah: ' + json.url;
-        status.className = 'success';
-        await loadGuru();
-      } catch (err) {
-        status.textContent = err.message;
-        status.className = 'error';
-      } finally {
-        document.getElementById('btnUpload').disabled = false;
-      }
-    });
-
-    // Load data saat halaman dibuka
-    loadGuru();
-  </script>
 </body>
 </html>
