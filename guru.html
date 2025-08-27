@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daftar Guru</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+
+<!-- Navbar -->
+<nav class="bg-blue-600 text-white p-4 shadow">
+  <div class="container mx-auto flex justify-between items-center">
+    <h1 class="text-lg font-bold">Sistem Pembelajaran</h1>
+    <ul class="flex space-x-6">
+      <li><a href="index.html" class="hover:underline">Aploud Data</a></li>
+      <li><a href="guru.html" class="hover:underline">Daftar Guru</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Konten -->
+<div class="p-6">
+  <h2 class="text-2xl font-bold mb-4">Daftar Guru</h2>
+
+  <!-- Input Pencarian -->
+  <input type="text" id="searchInput" placeholder="Cari nama atau NIP..." 
+         class="border p-2 w-full mb-4 rounded" onkeyup="filterTable()">
+
+  <table class="table-auto border-collapse border border-gray-400 w-full" id="guruTable">
+    <thead>
+      <tr class="bg-gray-200">
+        <th class="border px-2 py-1">Nama Guru</th>
+        <th class="border px-2 py-1">NIP</th>
+        <th class="border px-2 py-1">Media</th>
+      </tr>
+    </thead>
+    <tbody id="guruBody">
+      <!-- Data otomatis dimuat dari spreadsheet -->
+    </tbody>
+  </table>
+</div>
+
+<script>
+const SHEET_ID = "1SVtLNZouu5qEQ4g8VXmgsDZL1uZqxgXRjQYLYznkaGY";
+const SHEET_NAME = "data_upload";
+let allData = []; // simpan data global
+
+function loadGuruData() {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+  fetch(url)
+    .then(res => res.text())
+    .then(rep => {
+      const data = JSON.parse(rep.substr(47).slice(0, -2));
+      const tbody = document.getElementById("guruBody");
+      tbody.innerHTML = "";
+      allData = []; // reset data
+
+      // mulai dari baris ke-2 (skip baris pertama/header)
+      data.table.rows.slice(1).forEach(r => {
+        const nama = r.c[0] ? r.c[0].v : "";
+        const nip = r.c[1] ? r.c[1].v : "";
+        const media = r.c[2] ? r.c[2].v : "";
+
+        allData.push({nama, nip, media});
+      });
+
+      renderTable(allData);
+    });
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById("guruBody");
+  tbody.innerHTML = "";
+  data.forEach(item => {
+    let mediaHtml = item.media;
+    if (item.media && item.media.startsWith("http")) {
+      mediaHtml = `<a href="${item.media}" target="_blank" class="text-blue-600 underline">Lihat Data</a>`;
+    }
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="border px-2 py-1">${item.nama}</td>
+      <td class="border px-2 py-1">${item.nip}</td>
+      <td class="border px-2 py-1">${mediaHtml}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Fungsi filter pencarian
+function filterTable() {
+  const query = document.getElementById("searchInput").value.toLowerCase();
+  const filtered = allData.filter(item =>
+    item.nama.toLowerCase().includes(query) ||
+    item.nip.toString().toLowerCase().includes(query) ||
+    (item.media && item.media.toLowerCase().includes(query))
+  );
+  renderTable(filtered);
+}
+
+// Panggil saat halaman dibuka
+loadGuruData();
+</script>
+
+</body>
+</html>
