@@ -6,45 +6,42 @@
 <title>Upload Dokumen Pembelajaran</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 p-6">
+<body class="bg-gray-100">
 
-<h1 class="text-2xl font-bold mb-4">Upload Dokumen Pembelajaran</h1>
+<!-- Navbar -->
+<nav class="bg-blue-600 text-white p-4 shadow">
+  <div class="container mx-auto flex justify-between items-center">
+    <h1 class="text-lg font-bold">Sistem Pembelajaran</h1>
+    <ul class="flex space-x-6">
+      <li><a href="#" class="hover:underline">Upload Data</a></li>
+    </ul>
+  </div>
+</nav>
 
-<!-- Pilih guru -->
-<div class="mb-4">
-  <label class="block mb-2 font-semibold">Pilih Guru:</label>
-  <select id="guruSelect" class="border p-2 w-full"></select>
+<!-- Konten -->
+<div class="p-6">
+  <h2 class="text-2xl font-bold mb-4">Upload Dokumen Pembelajaran</h2>
+
+  <!-- Pilih guru -->
+  <div class="mb-4">
+    <label class="block mb-2 font-semibold">Pilih Guru:</label>
+    <select id="guruSelect" class="border p-2 w-full"></select>
+  </div>
+
+  <!-- Pilih file -->
+  <div class="mb-4">
+    <label class="block mb-2 font-semibold">Pilih File:</label>
+    <input type="file" id="fileInput" class="border p-2 w-full" />
+  </div>
+
+  <button onclick="uploadFile()" class="bg-blue-500 text-white px-4 py-2 rounded">Upload</button>
+
+  <!-- Notifikasi -->
+  <div id="notif" class="mt-4 text-green-600 font-semibold hidden"></div>
 </div>
-
-<!-- Pilih file -->
-<div class="mb-4">
-  <label class="block mb-2 font-semibold">Pilih File:</label>
-  <input type="file" id="fileInput" class="border p-2 w-full" />
-</div>
-
-<button onclick="uploadFile()" class="bg-blue-500 text-white px-4 py-2 rounded">Upload</button>
-
-<!-- Notifikasi -->
-<div id="notif" class="mt-4 text-green-600 font-semibold hidden"></div>
-
-<!-- Tabel upload -->
-<h2 class="text-xl font-bold mt-6 mb-2">Data Upload</h2>
-<table class="table-auto border-collapse border border-gray-400 w-full" id="uploadTable">
-  <thead>
-    <tr class="bg-gray-200">
-      <th class="border px-2 py-1">Nama Guru</th>
-      <th class="border px-2 py-1">NIP</th>
-      <th class="border px-2 py-1">Media</th>
-    </tr>
-  </thead>
-  <tbody id="uploadBody">
-    <!-- Tabel kosong di awal -->
-  </tbody>
-</table>
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxSF_F6WKNWkrnxta1SNW5qMjsDCnJM3ZBcLEhV41hErNkqY2kTL1PE5E9X7MRs1Ad2ew/exec"; // Ganti URL Apps Script
-
 const notifEl = document.getElementById("notif");
 
 // Ambil daftar guru dari sheet "data"
@@ -58,8 +55,6 @@ fetch(SCRIPT_URL)
     option.textContent = guru.nama;
     select.appendChild(option);
   });
-  // Tampilkan data upload saat halaman dibuka
-  loadUploadData();
 });
 
 // Upload file
@@ -88,8 +83,6 @@ function uploadFile() {
       if (resp.status === "success") {
         notifEl.textContent = "File berhasil dikirim!";
         notifEl.classList.remove("hidden");
-        // Tampilkan data terbaru
-        loadUploadData();
       } else {
         alert(resp.message);
       }
@@ -98,29 +91,6 @@ function uploadFile() {
   };
   reader.readAsDataURL(file);
 }
-
-// Fungsi ambil data upload dari sheet "data_upload"
-function loadUploadData() {
-  fetch(SCRIPT_URL + "?action=get_upload")
-    .then(res => res.json())
-    .then(data => {
-      const tbody = document.getElementById("uploadBody");
-      tbody.innerHTML = "";
-      if(!data || data.length === 0) return; 
-      data.forEach(row => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td class="border px-2 py-1">${row["Nama Guru"]}</td>
-          <td class="border px-2 py-1">${row["NIP"]}</td>
-          <td class="border px-2 py-1"><a href="${row["Media"]}" target="_blank">Lihat</a></td>
-        `;
-        tbody.appendChild(tr);
-      });
-    });
-}
-
-// Auto-refresh setiap 10 detik agar tabel selalu update
-setInterval(loadUploadData, 10000);
 </script>
 
 </body>
